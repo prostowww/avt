@@ -1,0 +1,154 @@
+################################################################################
+#
+# File:   xilinx_pci_exp_4_lane-XC4VFX60-FF672-10.ucf
+#
+# Use this file only with the device listed below.  Any other
+# combination is invalid.  Do not modify this file except in
+# regions designated for "User" constraints.
+#
+# Copyright (c) 2005 Xilinx, Inc.  All rights reserved.
+#
+################################################################################
+# Define Device, Package And Speed Grade
+################################################################################
+
+CONFIG PART = XC4VFX60-FF1152-11;
+CONFIG STEPPING = "ES";
+
+################################################################################
+#
+# Note:  Change the instance name for the user application to match the
+# instance name in your custom design.
+#
+#
+#
+# You may add further time names and time groups specific to your custom
+# design as long as the do not interfere with the timegroups and time
+# specs used for the interface.
+#
+################################################################################
+# I/O Assignment
+################################################################################
+#
+
+NET "led_0"                LOC = "D31" | IOSTANDARD = LVCMOS33 ;
+NET "led_1"                LOC = "E31" | IOSTANDARD = LVCMOS33 ;
+NET "led_2"                LOC = "F31" | IOSTANDARD = LVCMOS33 ;
+NET "led_3"                LOC = "G31" | IOSTANDARD = LVCMOS33 ;
+NET "led_4"                LOC = "J31" | IOSTANDARD = LVCMOS33 ;
+NET "led_5"                LOC = "K31" | IOSTANDARD = LVCMOS33 ;
+NET "led_6"                LOC = "D30" | IOSTANDARD = LVCMOS33 ;
+NET "led_7"                LOC = "F30" | IOSTANDARD = LVCMOS33 ;
+NET "led_8"                LOC = "G30" | IOSTANDARD = LVCMOS33 ;
+NET "led_9"                LOC = "H30" | IOSTANDARD = LVCMOS33 ;
+
+################################################################################
+# Core specific I/O Assignments
+################################################################################
+
+NET "sys_reset_n"              LOC = "M3" | IOSTANDARD = LVCMOS25 | PULLUP | NODELAY ;
+
+#
+################################################################################
+# Reference Clock IO Pads, RocketIO, DCM and Clock Tree Buffer Placement
+################################################################################
+#
+
+################################################################################
+# FF672 -- XC4VFX60
+# MGT COLUMN0
+################################################################################
+
+################################################################################
+# Dedicated IO locations for GT11 REFCLK
+################################################################################
+
+NET "sys_clk_p"              LOC = "J1" | IOSTANDARD = LVCMOS25 | NODELAY ;
+NET "sys_clk_n"              LOC = "K1" | IOSTANDARD = LVCMOS25 | NODELAY ;
+INST "sys_clk_mgt"           LOC = "GT11CLK_X1Y3" ;
+
+################################################################################
+# Locations for GT 
+################################################################################
+
+# RocketIO PCIe Lane0
+
+INST "ep/plm/v4f_mgt/gt11_by4/GT11_PCIEXP_4_INST"   LOC = "GT11_X1Y7" ;
+INST "ep/plm/v4f_mgt/gt11_by4/GT11_PCIEXP_4_INST"   GT11_MODE = "A" ;
+
+
+# RocketIO PCIe Lane1
+
+INST "ep/plm/v4f_mgt/gt11_by4/GT11_PCIEXP_4_INST2"  LOC = "GT11_X1Y6" ;
+INST "ep/plm/v4f_mgt/gt11_by4/GT11_PCIEXP_4_INST2"  GT11_MODE = "B" ;
+
+# RocketIO PCIe Lane2
+
+INST "ep/plm/v4f_mgt/gt11_by4/GT11_PCIEXP_4_INST3"  LOC = "GT11_X1Y5" ;
+INST "ep/plm/v4f_mgt/gt11_by4/GT11_PCIEXP_4_INST3"  GT11_MODE = "A" ;
+
+#RocketIO PCIe Lane3
+
+INST "ep/plm/v4f_mgt/gt11_by4/GT11_PCIEXP_4_INST4"  LOC = "GT11_X1Y4" ;
+INST "ep/plm/v4f_mgt/gt11_by4/GT11_PCIEXP_4_INST4"   GT11_MODE = "B" ;
+
+################################################################################
+# System DCM and Global Clock Tree Buffers
+################################################################################
+
+INST "ep/plm/v4f_mgt/dcm"           LOC = "DCM_ADV_X0Y4" ;
+
+INST "ep/plm/v4f_mgt/mgt_bufg"      LOC = "BUFGCTRL_X0Y5" ;
+INST "ep/plm/v4f_mgt/phy_bufg"      LOC = "BUFGCTRL_X0Y1" ;
+
+#
+################################################################################
+# Time Specs
+################################################################################
+#
+
+################################################################################
+# Non-critical nets, timing ignore
+################################################################################
+
+NET "sys_reset_n"                    TIG ;
+
+################################################################################
+# Timing names for clock nets
+################################################################################
+
+NET "sys_clk_p"                         TNM_NET = HSIOS(*) "SYSCLK" ;
+
+NET "ep/plm/v4f_mgt/mgt_clk"    TNM_NET = FFS(*) "MGTCLK" ;
+NET "ep/plm/v4f_mgt/mgt_clk"    TNM_NET = HSIOS(*) "MGTCLK" ;
+NET "ep/plm/v4f_mgt/mgt_clk"    TNM_NET = RAMS(*) "MGTCLK" ;
+
+NET "ep/plm/v4f_mgt/phy_clk"    TNM_NET = FFS(*) "PHYCLK" ;
+NET "ep/plm/v4f_mgt/phy_clk"    TNM_NET = RAMS(*) "PHYCLK" ;
+
+NET "ep/plm/v4f_mgt/mgtdiv2_clk" TNM_NET = FFS(*) "MGTCLKDIV2";
+NET "ep/plm/v4f_mgt/mgtdiv2_clk" TNM_NET = HSIOS(*) "MGTCLKDIV2";
+
+################################################################################
+# Timing specs for clock nets
+################################################################################
+
+TIMESPEC "TS_MGTCLK"  = PERIOD "MGTCLK" 125.0 MHz HIGH 50 % PRIORITY 0 ;
+TIMESPEC "TS_MGTCLKDIV2"  = PERIOD "MGTCLKDIV2" 62.5 MHz HIGH 50 % PRIORITY 0 ;
+TIMESPEC "TS_PHYCLK"  = PERIOD "PHYCLK" 125.00 MHz HIGH 50 % PRIORITY 0 ;
+TIMESPEC "TS_SYSCLK"  = PERIOD "SYSCLK" 125.00 MHz HIGH 50 % PRIORITY 1 ;
+
+################################################################################
+# Timing relationship based constraint
+################################################################################
+
+TIMESPEC "TS_PHYCLK_TO_MGTCLK" = FROM "MGTCLK" TO "PHYCLK" 8.0 ns ;
+TIMESPEC "TS_MGTCLK_TO_PHYCLK" = FROM "PHYCLK" TO "MGTCLK" 8.0 ns ;
+TIMESPEC "TS_MGTCLK_TO_MGTCLKDIV2" = FROM "MGTCLK" TO "MGTCLKDIV2" 8.0 ns ;
+TIMESPEC "TS_MGTCLKDIV2_TO_MGTCLK" = FROM "MGTCLKDIV2" TO "MGTCLK" 8.0 ns ;
+
+# Constraint for BUFGMUX select
+
+INST     "ep/plm/fsm/reg_sel_by1"      TNM = SEL_FF;
+PIN      "ep/plm/v4f_mgt/phy_bufg.S"   TPSYNC = SEL_BGM;
+TIMESPEC "TS_MGT_CLK_TO_PHY_BUFG_SEL" = FROM "SEL_FF" to "SEL_BGM" 8 ns;

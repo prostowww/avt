@@ -1,0 +1,35 @@
+mainprogram32
+Memory::(ram x(1024)) 32 prt
+Register::(ad) 32 par
+return prt(x)
+  declare
+    reg 32 counter
+    reg 1  rdy    
+  enddeclare
+  x.addra = counter
+  x.dina = counter
+  x.wea = rdy
+[  
+ []
+ 
+if(rdy==1)
+    counter++
+endif
+]
+loop0:
+ {
+    if (!par.rdy(ad))
+	next loop0
+    else
+	rdy = 1
+    endif
+ }
+loop1:
+ {
+    if(counter < 1024)
+	
+	next loop1
+    else
+	rdy = 0
+    endif
+ }

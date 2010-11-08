@@ -1,0 +1,118 @@
+#!/usr/bin/perl
+
+use FindBin;
+use lib $FindBin::Bin;
+use vhdlstruct;
+use vhdltype;
+
+@names=@ARGV;
+$vhdl_path="processor/pcores/matrix_v1_00_a/hdl/vhdl";
+$download="processor/implementation/download.bit";
+($cad,$count_IMP)=(1,0);
+$LOGIC_LOG="";
+if($names[0] eq '-c'){$cad=0;shift(@names);}
+$names[0]=~/^(\w+)\.avt/ || die "Error arguments: $names[0]\n";
+$vhdlfile="$1.vhd";
+open(WVHD,">$vhdlfile");
+for $avt_name (@names)
+ {
+  $count_IMP++;
+  -f $avt_name || die "Error: not found file $avt_name\n";
+  if($avt_name=~/^\w+\.vhd/){change_braces($avt_name);next;}
+  $avt_name=~/^\w+\.avt/ || die "Error arguments: $avt_name\n";
+  ($j,$PHASE)=(0,0);
+  @current_date=();
+  $autofile="$avt_name.trans";
+#-----------------------------------------------------------read avt; write new avt, vhd component
+  
+  open(WW,">$autofile");
+  open(AVT,"m4 <$avt_name|") || die "Error: not found file '$avt_name'\n";
+  while($q=<AVT>)
+   {
+    $j++;
+    $q=~s/\r//g;
+    $BACKLINE="Error in '$avt_name' line $j: ";
+    !$PHASE && $q=~/^\s*\Z/ && next;
+    if($q=~/^program\s/ || $q=~/^mainprogram/){$PHASE=1;change_phase($q);}
+    elsif($PHASE==1 && ($q=~/^endprogram\s*\Z/ || $q=~/^return\s/)){$PHASE=2;change_phase($q);}
+    elsif($q=~/^\s*declare\s*\Z/ || $q=~/^\s*enddeclare\s*\Z/ || $q=~/^\s*[\[\]]\s*\Z/ || $q=~/^\s*\[\]\s*\Z/)
+     {
+      $PHASE++;
+      change_phase($q);
+      if($PHASE==4)
+       {
+        print WW @current_date;
+        @current_date=();
+       }
+     }
+    else {make_str($q);}
+   }
+  finish_avt();
+  print WW @current_date;
+  close(AVT);
+  close(WW);
+#-----------------------------------------------------------translation
+#=pod
+  $ENV{'IMJA_FAJLA'}=$autofile;
+  system("$xilhome/avtokod <$autofile >avtokod.vhdl.tmp") && finish_trans(1);
+  change_braces("m4 <avtokod.vhdl.tmp|");
+#=cut
+if(-f $avto_vhdl)
+ {
+  open(RD,$avto_vhdl);
+  while(<RD>){print WVHD;}
+  close(RD);
+ }
+}
+finish_trans();
+#------------------------------------------link
+if($cad)
+ {
+  if($COUNTSIZE==32){rename $vhdlfile, "vector_proc_32.vhd";}
+  else {rename $vhdlfile, "vector_proc_64.vhd";}
+  print "Running the native CAD\n";
+  system "build";
+=pod
+  chomp($home=`pwd`);
+  -d "$home/processor" || die "Error: not found directory processor\n";
+  system("cp $vhdlfile $home/$vhdl_path");
+  print "Running the native CAD\n";
+  system "$xilhome/fpga_compile $xilhome/list";
+  system "cp $download $home";
+=cut
+ }
+#-----------------------------------------------------------finish
+
+sub change_braces {
+my ($fl,$s)=();
+open(RD, $_[0]) || die "Error: $!\n";
+while($s=<RD>)
+ {
+  if(!$fl && $s=~/^\s*architecture\s+(IMP\w*)\s+/)
+    {
+     $fl=$1;$s=~s/$fl/$fl$count_IMP/;
+    }
+  elsif($fl && ($s=~/^\s*end\s+architecture\s+$fl/ || $s=~/^\s*end\s+$fl/))
+    {
+     $s=~s/$fl/$fl$count_IMP/;
+    }
+  print WVHD $s;
+ }
+close(RD);
+}
+
+sub finish_trans {
+close(WVHD);
+unlink ("COMPAVTO.h","avto.h");
+if(-z "avtocomponent.vhd"){unlink "avtocomponent.vhd";}
+if($_[0]){die "Stopped translation\n";}
+unlink "avtokod.vhdl.tmp";
+if($LOGIC_LOG)
+ {
+  open(WR,">logic.log");
+  print WR $LOGIC_LOG;
+  close(WR);
+#  print "Compiled successfully.\nDetails  are in the file \"logic.log\".\n";
+ }
+}
+#-----
